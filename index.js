@@ -13,17 +13,33 @@ const server = http.createServer((req, res) => {
 const io = socket(server);
 
 io.on('connection', client => {
-    // console.log('connected!!');
-    client.on('client-msg', data => {
-        console.log(data);
 
+    client.on('message-connect', data => {
         const payload = {
-            message: data.message.split('').reverse().join(''),
+            message: `Новый клиент подключился к беседе`,
         }
 
+        client.broadcast.emit('connect-msg', payload);
+        client.emit('connect-msg', payload);
+    })
+
+    client.on('client-msg', data => {
+        const payload = {
+            message: data.message.split('').reverse().join(''),
+            name: data.name
+        }
         client.broadcast.emit('server-msg', payload);
         client.emit('server-msg', payload);
     });
+
+    client.on('disconnect', () => {
+        const payload = {
+            message: 'Клиент покинул беседу',
+        }
+
+        client.broadcast.emit('disconnect-msg', payload);
+        client.emit('disconnect-msg', payload);
+    })
 })
 
 server.listen(5500);

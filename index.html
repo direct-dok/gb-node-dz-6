@@ -17,10 +17,12 @@
     const messageBlock = document.querySelector('#messages');
     const sendButton = document.querySelector('#button');
     const inputMessage = document.querySelector('#input');
+    const userName = generateUserName();
 
     sendButton.addEventListener('click', () => {
         const data = {
             message: inputMessage.value,
+            name: userName
         }
 
         socket.emit('client-msg', data);
@@ -28,13 +30,48 @@
     });
 
     socket.on('connect', () => {
-        console.log('Connected!!');
+        socket.emit('message-connect', {name: userName})
     })
 
     socket.on('server-msg', data => {
-        // console.log(data);
-        messageBlock.insertAdjacentHTML('afterBegin', `<div>${data.message}</div>`);
+        messageBlock.insertAdjacentHTML(
+            'afterBegin', 
+            `<div>
+                <ul style="margin: 0 0 20px 0">
+                    <li>Сообщение от: ${data.name}</li>
+                    <li>Текст сообщения: ${data.message}</li>
+                </ul>
+            </div>`
+        );
     })
+
+    socket.on('connect-msg', data => {
+        messageBlock.insertAdjacentHTML(
+            'afterBegin', 
+            `<div>
+               ${data.message}
+            </div>`
+        );
+    })
+
+    socket.on('disconnect-msg', data => {
+        messageBlock.insertAdjacentHTML(
+            'afterBegin', 
+            `<div>
+               ${data.message}
+            </div>`
+        );
+    })
+
+
+    socket.on('disconnect', () => {
+        socket.emit('msg-disconnect', {name: userName})
+    })
+
+
+    function generateUserName() {
+        return 'User_' + Math.random().toString(36).substr(2,9)
+    }
 
 </script>
     
